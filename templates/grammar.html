@@ -2,15 +2,15 @@
 <html lang="ko">
 <head>
   <meta charset="utf-8">
-  <title>어휘 테스트 - 학생</title>
+  <title>문법 테스트 - 학생</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <nav>
-    <a href="/student" class="active">어휘 테스트</a>
-    <a href="/grammar">문법 테스트</a>
+    <a href="/student">어휘 테스트</a>
+    <a href="/grammar" class="active">문법 테스트</a>
   </nav>
-  <h1>어휘 테스트 (학생)</h1>
+  <h1>문법 테스트 (학생)</h1>
 
   <div id="setup-screen">
     <div class="row">
@@ -30,14 +30,6 @@
       </select>
     </div>
     <div class="row">
-      <label for="lang-select">내 언어:</label>
-      <select id="lang-select">
-        {% for code, name in languages.items() %}
-        <option value="{{ code }}">{{ name }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="row">
       <button id="start-btn">테스트 시작</button>
     </div>
     <div id="setup-message"></div>
@@ -46,14 +38,22 @@
   <div id="quiz-screen" style="display:none">
     <div id="quiz-progress"></div>
     <div id="quiz-prompt"></div>
-    <div id="quiz-choices"></div>
+    <div id="grammar-answer-row">
+      <input type="text" id="grammar-answer-input" class="typing-input" placeholder="답을 입력하세요" autocomplete="off">
+      <button id="submit-answer-btn">확인</button>
+      <span id="grade-mark" class="grade-mark"></span>
+    </div>
+    <div id="grammar-correct-answer"></div>
   </div>
 
   <div id="result-screen" style="display:none">
     <div id="result-box"></div>
-    <button id="retry-btn" class="secondary">다시 테스트하기</button>
+    <div class="row">
+      <button id="finish-btn" class="secondary">테스트 종료</button>
+      <button id="retry-wrong-btn">틀린 문제 다시 풀기</button>
+    </div>
   </div>
 
-  <script src="{{ url_for('static', filename='student.js') }}"></script>
+  <script src="{{ url_for('static', filename='grammar.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>문법 관리 - 선생님</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav>
+    <a href="/admin">어휘 관리</a>
+    <a href="/admin/grammar" class="active">문법 관리</a>
+  </nav>
+  <h1>문법 관리 (선생님)</h1>
+
+  <div class="row">
+    <label for="book-select">교재 선택:</label>
+    <select id="book-select">
+      {% for id, name in books.items() %}
+      <option value="{{ id }}">{{ name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="row">
+    <label for="lesson-select">과 선택:</label>
+    <select id="lesson-select">
+      {% for n in lessons %}
+      <option value="{{ n }}">{{ n }}과</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <h2>문법 내용 입력</h2>
+  <div class="row">
+    <label for="grammar-title">문법:</label>
+    <input type="text" id="grammar-title" placeholder="예: 동사, 형용사 + -으시- / -시-" style="flex:1">
+  </div>
+  <div class="row">
+    <label for="grammar-meaning">의미:</label>
+    <input type="text" id="grammar-meaning" placeholder="예: 주어의 행위나 상태를 높여 말할 때 사용해요." style="flex:1">
+  </div>
+
+  <div id="rule-groups"></div>
+  <div class="row">
+    <button id="add-group-btn" class="secondary">+ 규칙 그룹 추가</button>
+    <button id="save-grammar-btn">문법 내용 저장</button>
+  </div>
+  <div id="grammar-message"></div>
+
+  <div id="grammar-list"></div>
+
+  <h2>문제와 정답 입력</h2>
+  <div class="row">
+    <input type="text" id="question-input" placeholder="문제 (예: 알다)">
+    <input type="text" id="answer-input" placeholder="정답 (예: 아시다)">
+    <button id="add-question-btn">추가</button>
+  </div>
+  <div id="question-message"></div>
+  <table id="question-table">
+    <thead>
+      <tr><th>문제</th><th>정답</th><th></th></tr>
+    </thead>
+    <tbody id="question-tbody"></tbody>
+  </table>
+
+  <script src="{{ url_for('static', filename='admin_grammar.js') }}"></script>
+</body>
+</html>

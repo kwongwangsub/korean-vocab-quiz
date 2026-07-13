@@ -40,6 +40,31 @@ def init_db():
             cur.execute(
                 "ALTER TABLE vocab ADD COLUMN IF NOT EXISTS book TEXT NOT NULL DEFAULT 'beginner1'"
             )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS grammar_content (
+                    id TEXT PRIMARY KEY,
+                    book TEXT NOT NULL,
+                    lesson INTEGER NOT NULL,
+                    title TEXT NOT NULL,
+                    meaning TEXT NOT NULL,
+                    rule_groups JSONB NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                )
+                """
+            )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS grammar_questions (
+                    id TEXT PRIMARY KEY,
+                    book TEXT NOT NULL,
+                    lesson INTEGER NOT NULL,
+                    question TEXT NOT NULL,
+                    answer TEXT NOT NULL,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+                )
+                """
+            )
         conn.commit()
 
 
@@ -92,6 +117,113 @@ def lesson_summary(book_id):
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT lesson, COUNT(*) FROM vocab WHERE book = %s GROUP BY lesson",
+                (book_id,),
+            )
+            counts = dict(cur.fetchall())
+    return [
+        {"lesson": n, "count": counts.get(n, 0)}
+        for n in LESSON_NUMBERS
+    ]
+
+
+def _load_json(value):
+    return value if isinstance(value, (dict, list)) else json.loads(value)
+
+
+def get_grammar_content(book_id, lesson_num):
+    with _connect() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, title, meaning, rule_groups FROM grammar_content
+                WHERE book = %s AND lesson = %s ORDER BY created_at
+                """,
+                (book_id, lesson_num),
+            )
+            rows = cur.fetchall()
+            return [
+                {
+                    "id": r["id"],
+                    "title": r["title"],
+                    "meaning": r["meaning"],
+                    "rule_groups": _load_json(r["rule_groups"]),
+                }
+                for r in rows
+            ]
+
+
+def add_grammar_content(book_id, lesson_num, title, meaning, rule_groups):
+    entry_id = uuid.uuid4().hex
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO grammar_content (id, book, lesson, title, meaning, rule_groups)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                """,
+                (entry_id, book_id, lesson_num, title, meaning, psycopg2.extras.Json(rule_groups)),
+            )
+        conn.commit()
+    return {"id": entry_id, "title": title, "meaning": meaning, "rule_groups": rule_groups}
+
+
+def delete_grammar_content(book_id, lesson_num, entry_id):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM grammar_content WHERE id = %s AND book = %s AND lesson = %s",
+                (entry_id, book_id, lesson_num),
+            )
+            removed = cur.rowcount > 0
+        conn.commit()
+    return removed
+
+
+def get_grammar_questions(book_id, lesson_num):
+    with _connect() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, question, answer FROM grammar_questions
+                WHERE book = %s AND lesson = %s ORDER BY created_at
+                """,
+                (book_id, lesson_num),
+            )
+            return [dict(r) for r in cur.fetchall()]
+
+
+def add_grammar_question(book_id, lesson_num, question, answer):
+    entry_id = uuid.uuid4().hex
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO grammar_questions (id, book, lesson, question, answer)
+                VALUES (%s, %s, %s, %s, %s)
+                """,
+                (entry_id, book_id, lesson_num, question, answer),
+            )
+        conn.commit()
+    return {"id": entry_id, "question": question, "answer": answer}
+
+
+def delete_grammar_question(book_id, lesson_num, entry_id):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM grammar_questions WHERE id = %s AND book = %s AND lesson = %s",
+                (entry_id, book_id, lesson_num),
+            )
+            removed = cur.rowcount > 0
+        conn.commit()
+    return removed
+
+
+def grammar_lesson_summary(book_id):
+    with _connect() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT lesson, COUNT(*) FROM grammar_questions WHERE book = %s GROUP BY lesson",
                 (book_id,),
             )
             counts = dict(cur.fetchall())
