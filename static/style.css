@@ -134,8 +134,10 @@ th { color: #555; }
 }
 .grammar-rule-table td.arrow { color: #9ca3af; padding-left: 2px; padding-right: 2px; width: 1%; }
 
-.grammar-rule-table th:nth-child(3n),
-.grammar-rule-table td:nth-child(3n) {
+.grammar-rule-table th:not(:last-child) {
+  border-right: 3px solid #1d4ed8;
+}
+.grammar-rule-table td:nth-child(3n):not(:last-child) {
   border-right: 3px solid #1d4ed8;
 }
 
