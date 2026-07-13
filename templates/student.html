@@ -11,6 +11,14 @@
 
   <div id="setup-screen">
     <div class="row">
+      <label for="book-select">교재 선택:</label>
+      <select id="book-select">
+        {% for id, name in books.items() %}
+        <option value="{{ id }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row">
       <label for="lesson-select">과 선택:</label>
       <select id="lesson-select">
         {% for n in lessons %}

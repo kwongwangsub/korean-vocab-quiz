@@ -1,5 +1,6 @@
 const LANG_ORDER = ["zh-CN", "ja", "th", "bn", "vi", "en"];
 
+const bookSelect = document.getElementById("book-select");
 const lessonSelect = document.getElementById("lesson-select");
 const lessonCount = document.getElementById("lesson-count");
 const koInput = document.getElementById("ko-input");
@@ -16,8 +17,9 @@ function clearMessage() {
 }
 
 async function loadWords() {
+  const book = bookSelect.value;
   const lesson = lessonSelect.value;
-  const res = await fetch(`/api/lessons/${lesson}/words`);
+  const res = await fetch(`/api/books/${book}/lessons/${lesson}/words`);
   const words = await res.json();
 
   lessonCount.textContent = `(${words.length}개 등록됨)`;
@@ -55,8 +57,9 @@ async function addWord() {
   clearMessage();
 
   try {
+    const book = bookSelect.value;
     const lesson = lessonSelect.value;
-    const res = await fetch(`/api/lessons/${lesson}/words`, {
+    const res = await fetch(`/api/books/${book}/lessons/${lesson}/words`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ko }),
@@ -79,11 +82,13 @@ async function addWord() {
 }
 
 async function deleteWord(id) {
+  const book = bookSelect.value;
   const lesson = lessonSelect.value;
-  await fetch(`/api/lessons/${lesson}/words/${id}`, { method: "DELETE" });
+  await fetch(`/api/books/${book}/lessons/${lesson}/words/${id}`, { method: "DELETE" });
   await loadWords();
 }
 
+bookSelect.addEventListener("change", loadWords);
 lessonSelect.addEventListener("change", loadWords);
 addBtn.addEventListener("click", addWord);
 koInput.addEventListener("keydown", (e) => {

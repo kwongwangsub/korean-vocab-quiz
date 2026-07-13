@@ -2,6 +2,7 @@ const setupScreen = document.getElementById("setup-screen");
 const quizScreen = document.getElementById("quiz-screen");
 const resultScreen = document.getElementById("result-screen");
 
+const bookSelect = document.getElementById("book-select");
 const lessonSelect = document.getElementById("lesson-select");
 const langSelect = document.getElementById("lang-select");
 const startBtn = document.getElementById("start-btn");
@@ -20,6 +21,7 @@ let correctCount = 0;
 let answering = false;
 
 async function startQuiz() {
+  const book = bookSelect.value;
   const lesson = lessonSelect.value;
   const lang = langSelect.value;
 
@@ -28,7 +30,7 @@ async function startQuiz() {
   startBtn.textContent = "불러오는 중...";
 
   try {
-    const res = await fetch(`/api/quiz?lesson=${lesson}&lang=${lang}`);
+    const res = await fetch(`/api/quiz?book=${book}&lesson=${lesson}&lang=${lang}`);
     const data = await res.json();
 
     if (!res.ok) {
