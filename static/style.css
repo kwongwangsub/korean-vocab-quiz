@@ -119,19 +119,24 @@ th { color: #555; }
 .grammar-rule-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
 }
 .grammar-rule-table th,
 .grammar-rule-table td {
   border: 1px solid #d1d5db;
-  padding: 6px 8px;
+  padding: 6px 10px;
   text-align: center;
   font-size: 0.95rem;
+  white-space: nowrap;
 }
 .grammar-rule-table th {
   background: #eff6ff;
   color: #1d4ed8;
 }
-.grammar-rule-table td.arrow { color: #9ca3af; width: 1.5em; }
+.grammar-rule-table td.arrow { color: #9ca3af; padding-left: 2px; padding-right: 2px; width: 1%; }
+
+.grammar-rule-table th:nth-child(3n),
+.grammar-rule-table td:nth-child(3n) {
+  border-right: 3px solid #1d4ed8;
+}
 
 button:disabled { opacity: 0.5; cursor: not-allowed; }
