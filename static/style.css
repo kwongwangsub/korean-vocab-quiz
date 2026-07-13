@@ -99,7 +99,7 @@ th { color: #555; }
   margin: 12px 0;
 }
 
-.grade-mark { font-size: 2rem; font-weight: bold; margin-left: 12px; }
+.grade-mark { font-size: 3.5rem; font-weight: bold; margin-left: 12px; line-height: 1; }
 .grade-mark.correct { color: #22c55e; }
 .grade-mark.wrong { color: #ef4444; }
 
