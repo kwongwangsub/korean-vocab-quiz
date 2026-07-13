@@ -20,11 +20,6 @@ def _check_book(book_id):
     return None
 
 
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
 @app.route("/admin")
 def admin_page():
     return render_template(
@@ -32,6 +27,7 @@ def admin_page():
     )
 
 
+@app.route("/")
 @app.route("/student")
 def student_page():
     return render_template(
