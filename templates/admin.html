@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>어휘 관리 - 선생님</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav><a href="/">&larr; 처음으로</a></nav>
+  <h1>어휘 관리 (선생님)</h1>
+
+  <div class="row">
+    <label for="lesson-select">과 선택:</label>
+    <select id="lesson-select">
+      {% for n in lessons %}
+      <option value="{{ n }}">{{ n }}과</option>
+      {% endfor %}
+    </select>
+    <span id="lesson-count"></span>
+  </div>
+
+  <div class="row">
+    <input type="text" id="ko-input" placeholder="한국어 단어 입력 (예: 안녕하세요)">
+    <button id="add-btn">추가 (자동 번역)</button>
+  </div>
+
+  <div id="message"></div>
+
+  <table id="word-table">
+    <thead>
+      <tr>
+        <th>한국어</th>
+        <th>중국어</th>
+        <th>일본어</th>
+        <th>태국어</th>
+        <th>벵골어</th>
+        <th>베트남어</th>
+        <th>영어</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="word-tbody"></tbody>
+  </table>
+
+  <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+</html>

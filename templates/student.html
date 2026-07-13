@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>어휘 테스트 - 학생</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav><a href="/">&larr; 처음으로</a></nav>
+  <h1>어휘 테스트 (학생)</h1>
+
+  <div id="setup-screen">
+    <div class="row">
+      <label for="lesson-select">과 선택:</label>
+      <select id="lesson-select">
+        {% for n in lessons %}
+        <option value="{{ n }}">{{ n }}과</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row">
+      <label for="lang-select">내 언어:</label>
+      <select id="lang-select">
+        {% for code, name in languages.items() %}
+        <option value="{{ code }}">{{ name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="row">
+      <button id="start-btn">테스트 시작</button>
+    </div>
+    <div id="setup-message"></div>
+  </div>
+
+  <div id="quiz-screen" style="display:none">
+    <div id="quiz-progress"></div>
+    <div id="quiz-prompt"></div>
+    <div id="quiz-choices"></div>
+  </div>
+
+  <div id="result-screen" style="display:none">
+    <div id="result-box"></div>
+    <button id="retry-btn" class="secondary">다시 테스트하기</button>
+  </div>
+
+  <script src="{{ url_for('static', filename='student.js') }}"></script>
+</body>
+</html>
