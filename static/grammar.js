@@ -13,6 +13,7 @@ const answerInput = document.getElementById("grammar-answer-input");
 const submitBtn = document.getElementById("submit-answer-btn");
 const gradeMark = document.getElementById("grade-mark");
 const correctAnswerBox = document.getElementById("grammar-correct-answer");
+const grammarReferenceBox = document.getElementById("grammar-reference");
 
 const resultBox = document.getElementById("result-box");
 const finishBtn = document.getElementById("finish-btn");
@@ -23,6 +24,60 @@ let currentIndex = 0;
 let correctCount = 0;
 let wrongQuestions = [];
 let answering = false;
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function renderGrammarReference(entries) {
+  if (entries.length === 0) {
+    grammarReferenceBox.innerHTML = "";
+    return;
+  }
+
+  grammarReferenceBox.innerHTML = entries
+    .map((entry) => {
+      const groups = entry.rule_groups || [];
+      const maxRows = Math.max(0, ...groups.map((g) => g.examples.length));
+
+      const headerCells = groups
+        .map((g) => `<th colspan="3">${escapeHtml(g.label)}</th>`)
+        .join("");
+
+      let bodyRows = "";
+      for (let i = 0; i < maxRows; i++) {
+        const cells = groups
+          .map((g) => {
+            const ex = g.examples[i];
+            if (!ex) return "<td></td><td></td><td></td>";
+            return `<td>${escapeHtml(ex.base)}</td><td class="arrow">→</td><td>${escapeHtml(ex.conjugated)}</td>`;
+          })
+          .join("");
+        bodyRows += `<tr>${cells}</tr>`;
+      }
+
+      const table = groups.length
+        ? `<table class="grammar-rule-table"><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table>`
+        : "";
+
+      return `
+        <div class="grammar-ref-card">
+          <h3>${escapeHtml(entry.title)}</h3>
+          <div class="meaning">${escapeHtml(entry.meaning)}</div>
+          ${table}
+        </div>
+      `;
+    })
+    .join("");
+}
+
+async function loadGrammarReference(book, lesson) {
+  const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar-content`);
+  const entries = res.ok ? await res.json() : [];
+  renderGrammarReference(entries);
+}
 
 async function startQuiz() {
   const book = bookSelect.value;
@@ -41,6 +96,7 @@ async function startQuiz() {
       return;
     }
 
+    await loadGrammarReference(book, lesson);
     beginRound(data);
   } finally {
     startBtn.disabled = false;
