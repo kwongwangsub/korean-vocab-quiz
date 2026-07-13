@@ -1,5 +1,6 @@
 const bookSelect = document.getElementById("book-select");
 const lessonSelect = document.getElementById("lesson-select");
+const grammarNoSelect = document.getElementById("grammar-no-select");
 
 const titleInput = document.getElementById("grammar-title");
 const meaningInput = document.getElementById("grammar-meaning");
@@ -121,7 +122,8 @@ function escapeHtml(str) {
 async function loadGrammarContent() {
   const book = bookSelect.value;
   const lesson = lessonSelect.value;
-  const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar-content`);
+  const grammarNo = grammarNoSelect.value;
+  const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar/${grammarNo}/content`);
   const entries = await res.json();
 
   grammarList.innerHTML = "";
@@ -172,10 +174,11 @@ async function saveGrammarContent() {
 
   const book = bookSelect.value;
   const lesson = lessonSelect.value;
+  const grammarNo = grammarNoSelect.value;
 
   saveGrammarBtn.disabled = true;
   try {
-    const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar-content`, {
+    const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar/${grammarNo}/content`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, meaning, rule_groups: cleanedGroups }),
@@ -199,7 +202,8 @@ async function saveGrammarContent() {
 async function deleteGrammarContent(id) {
   const book = bookSelect.value;
   const lesson = lessonSelect.value;
-  await fetch(`/api/books/${book}/lessons/${lesson}/grammar-content/${id}`, {
+  const grammarNo = grammarNoSelect.value;
+  await fetch(`/api/books/${book}/lessons/${lesson}/grammar/${grammarNo}/content/${id}`, {
     method: "DELETE",
   });
   await loadGrammarContent();
@@ -208,7 +212,8 @@ async function deleteGrammarContent(id) {
 async function loadQuestions() {
   const book = bookSelect.value;
   const lesson = lessonSelect.value;
-  const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar-questions`);
+  const grammarNo = grammarNoSelect.value;
+  const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar/${grammarNo}/questions`);
   const questions = await res.json();
 
   questionTbody.innerHTML = "";
@@ -235,10 +240,11 @@ async function addQuestion() {
 
   const book = bookSelect.value;
   const lesson = lessonSelect.value;
+  const grammarNo = grammarNoSelect.value;
 
   addQuestionBtn.disabled = true;
   try {
-    const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar-questions`, {
+    const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar/${grammarNo}/questions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, answer }),
@@ -261,7 +267,8 @@ async function addQuestion() {
 async function deleteQuestion(id) {
   const book = bookSelect.value;
   const lesson = lessonSelect.value;
-  await fetch(`/api/books/${book}/lessons/${lesson}/grammar-questions/${id}`, {
+  const grammarNo = grammarNoSelect.value;
+  await fetch(`/api/books/${book}/lessons/${lesson}/grammar/${grammarNo}/questions/${id}`, {
     method: "DELETE",
   });
   await loadQuestions();
@@ -274,6 +281,7 @@ function loadAll() {
 
 bookSelect.addEventListener("change", loadAll);
 lessonSelect.addEventListener("change", loadAll);
+grammarNoSelect.addEventListener("change", loadAll);
 saveGrammarBtn.addEventListener("click", saveGrammarContent);
 addQuestionBtn.addEventListener("click", addQuestion);
 questionInput.addEventListener("keydown", (e) => {

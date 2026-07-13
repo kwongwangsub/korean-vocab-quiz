@@ -4,6 +4,7 @@ const resultScreen = document.getElementById("result-screen");
 
 const bookSelect = document.getElementById("book-select");
 const lessonSelect = document.getElementById("lesson-select");
+const grammarNoSelect = document.getElementById("grammar-no-select");
 const startBtn = document.getElementById("start-btn");
 const setupMessage = document.getElementById("setup-message");
 
@@ -73,8 +74,8 @@ function renderGrammarReference(entries) {
     .join("");
 }
 
-async function loadGrammarReference(book, lesson) {
-  const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar-content`);
+async function loadGrammarReference(book, lesson, grammarNo) {
+  const res = await fetch(`/api/books/${book}/lessons/${lesson}/grammar/${grammarNo}/content`);
   const entries = res.ok ? await res.json() : [];
   renderGrammarReference(entries);
 }
@@ -82,13 +83,14 @@ async function loadGrammarReference(book, lesson) {
 async function startQuiz() {
   const book = bookSelect.value;
   const lesson = lessonSelect.value;
+  const grammarNo = grammarNoSelect.value;
 
   setupMessage.innerHTML = "";
   startBtn.disabled = true;
   startBtn.textContent = "불러오는 중...";
 
   try {
-    const res = await fetch(`/api/grammar-quiz?book=${book}&lesson=${lesson}`);
+    const res = await fetch(`/api/grammar-quiz?book=${book}&lesson=${lesson}&grammar_no=${grammarNo}`);
     const data = await res.json();
 
     if (!res.ok) {
@@ -96,7 +98,7 @@ async function startQuiz() {
       return;
     }
 
-    await loadGrammarReference(book, lesson);
+    await loadGrammarReference(book, lesson, grammarNo);
     beginRound(data);
   } finally {
     startBtn.disabled = false;

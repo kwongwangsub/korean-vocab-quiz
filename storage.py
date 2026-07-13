@@ -6,6 +6,7 @@ import psycopg2
 import psycopg2.extras
 
 LESSON_NUMBERS = list(range(1, 19))
+GRAMMAR_SLOTS = [1, 2]
 
 BOOKS = {
     "beginner1": "한국어와 한국문화 초급1",
@@ -46,6 +47,7 @@ def init_db():
                     id TEXT PRIMARY KEY,
                     book TEXT NOT NULL,
                     lesson INTEGER NOT NULL,
+                    grammar_no INTEGER NOT NULL DEFAULT 1,
                     title TEXT NOT NULL,
                     meaning TEXT NOT NULL,
                     rule_groups JSONB NOT NULL,
@@ -54,16 +56,23 @@ def init_db():
                 """
             )
             cur.execute(
+                "ALTER TABLE grammar_content ADD COLUMN IF NOT EXISTS grammar_no INTEGER NOT NULL DEFAULT 1"
+            )
+            cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS grammar_questions (
                     id TEXT PRIMARY KEY,
                     book TEXT NOT NULL,
                     lesson INTEGER NOT NULL,
+                    grammar_no INTEGER NOT NULL DEFAULT 1,
                     question TEXT NOT NULL,
                     answer TEXT NOT NULL,
                     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
                 )
                 """
+            )
+            cur.execute(
+                "ALTER TABLE grammar_questions ADD COLUMN IF NOT EXISTS grammar_no INTEGER NOT NULL DEFAULT 1"
             )
         conn.commit()
 
@@ -130,15 +139,15 @@ def _load_json(value):
     return value if isinstance(value, (dict, list)) else json.loads(value)
 
 
-def get_grammar_content(book_id, lesson_num):
+def get_grammar_content(book_id, lesson_num, grammar_no):
     with _connect() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
                 """
                 SELECT id, title, meaning, rule_groups FROM grammar_content
-                WHERE book = %s AND lesson = %s ORDER BY created_at
+                WHERE book = %s AND lesson = %s AND grammar_no = %s ORDER BY created_at
                 """,
-                (book_id, lesson_num),
+                (book_id, lesson_num, grammar_no),
             )
             rows = cur.fetchall()
             return [
@@ -152,16 +161,16 @@ def get_grammar_content(book_id, lesson_num):
             ]
 
 
-def add_grammar_content(book_id, lesson_num, title, meaning, rule_groups):
+def add_grammar_content(book_id, lesson_num, grammar_no, title, meaning, rule_groups):
     entry_id = uuid.uuid4().hex
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO grammar_content (id, book, lesson, title, meaning, rule_groups)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO grammar_content (id, book, lesson, grammar_no, title, meaning, rule_groups)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """,
-                (entry_id, book_id, lesson_num, title, meaning, psycopg2.extras.Json(rule_groups)),
+                (entry_id, book_id, lesson_num, grammar_no, title, meaning, psycopg2.extras.Json(rule_groups)),
             )
         conn.commit()
     return {"id": entry_id, "title": title, "meaning": meaning, "rule_groups": rule_groups}
@@ -179,29 +188,29 @@ def delete_grammar_content(book_id, lesson_num, entry_id):
     return removed
 
 
-def get_grammar_questions(book_id, lesson_num):
+def get_grammar_questions(book_id, lesson_num, grammar_no):
     with _connect() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
                 """
                 SELECT id, question, answer FROM grammar_questions
-                WHERE book = %s AND lesson = %s ORDER BY created_at
+                WHERE book = %s AND lesson = %s AND grammar_no = %s ORDER BY created_at
                 """,
-                (book_id, lesson_num),
+                (book_id, lesson_num, grammar_no),
             )
             return [dict(r) for r in cur.fetchall()]
 
 
-def add_grammar_question(book_id, lesson_num, question, answer):
+def add_grammar_question(book_id, lesson_num, grammar_no, question, answer):
     entry_id = uuid.uuid4().hex
     with _connect() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO grammar_questions (id, book, lesson, question, answer)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO grammar_questions (id, book, lesson, grammar_no, question, answer)
+                VALUES (%s, %s, %s, %s, %s, %s)
                 """,
-                (entry_id, book_id, lesson_num, question, answer),
+                (entry_id, book_id, lesson_num, grammar_no, question, answer),
             )
         conn.commit()
     return {"id": entry_id, "question": question, "answer": answer}
@@ -217,17 +226,3 @@ def delete_grammar_question(book_id, lesson_num, entry_id):
             removed = cur.rowcount > 0
         conn.commit()
     return removed
-
-
-def grammar_lesson_summary(book_id):
-    with _connect() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT lesson, COUNT(*) FROM grammar_questions WHERE book = %s GROUP BY lesson",
-                (book_id,),
-            )
-            counts = dict(cur.fetchall())
-    return [
-        {"lesson": n, "count": counts.get(n, 0)}
-        for n in LESSON_NUMBERS
-    ]

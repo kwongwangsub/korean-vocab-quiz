@@ -30,6 +30,15 @@
     </select>
   </div>
 
+  <div class="row">
+    <label for="grammar-no-select">문법 선택:</label>
+    <select id="grammar-no-select">
+      {% for n in grammar_slots %}
+      <option value="{{ n }}">문법{{ n }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
   <h2>문법 내용 입력</h2>
   <div class="row">
     <label for="grammar-title">문법:</label>

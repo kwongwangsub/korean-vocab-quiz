@@ -20,6 +20,12 @@ def _check_book(book_id):
     return None
 
 
+def _check_grammar_no(grammar_no):
+    if grammar_no not in storage.GRAMMAR_SLOTS:
+        return jsonify({"error": "유효하지 않은 문법 번호입니다."}), 400
+    return None
+
+
 @app.route("/admin")
 def admin_page():
     return render_template(
@@ -30,7 +36,10 @@ def admin_page():
 @app.route("/admin/grammar")
 def admin_grammar_page():
     return render_template(
-        "admin_grammar.html", books=storage.BOOKS, lessons=storage.LESSON_NUMBERS
+        "admin_grammar.html",
+        books=storage.BOOKS,
+        lessons=storage.LESSON_NUMBERS,
+        grammar_slots=storage.GRAMMAR_SLOTS,
     )
 
 
@@ -48,7 +57,10 @@ def student_page():
 @app.route("/grammar")
 def grammar_page():
     return render_template(
-        "grammar.html", books=storage.BOOKS, lessons=storage.LESSON_NUMBERS
+        "grammar.html",
+        books=storage.BOOKS,
+        lessons=storage.LESSON_NUMBERS,
+        grammar_slots=storage.GRAMMAR_SLOTS,
     )
 
 
@@ -142,20 +154,22 @@ def api_quiz():
 
 
 @app.route(
-    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar-content", methods=["GET"]
+    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar/<int:grammar_no>/content",
+    methods=["GET"],
 )
-def api_get_grammar_content(book_id, lesson_num):
-    err = _check_book(book_id)
+def api_get_grammar_content(book_id, lesson_num, grammar_no):
+    err = _check_book(book_id) or _check_grammar_no(grammar_no)
     if err:
         return err
-    return jsonify(storage.get_grammar_content(book_id, lesson_num))
+    return jsonify(storage.get_grammar_content(book_id, lesson_num, grammar_no))
 
 
 @app.route(
-    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar-content", methods=["POST"]
+    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar/<int:grammar_no>/content",
+    methods=["POST"],
 )
-def api_add_grammar_content(book_id, lesson_num):
-    err = _check_book(book_id)
+def api_add_grammar_content(book_id, lesson_num, grammar_no):
+    err = _check_book(book_id) or _check_grammar_no(grammar_no)
     if err:
         return err
 
@@ -167,16 +181,16 @@ def api_add_grammar_content(book_id, lesson_num):
     if not title or not meaning:
         return jsonify({"error": "문법과 의미를 입력하세요."}), 400
 
-    entry = storage.add_grammar_content(book_id, lesson_num, title, meaning, rule_groups)
+    entry = storage.add_grammar_content(book_id, lesson_num, grammar_no, title, meaning, rule_groups)
     return jsonify(entry), 201
 
 
 @app.route(
-    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar-content/<entry_id>",
+    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar/<int:grammar_no>/content/<entry_id>",
     methods=["DELETE"],
 )
-def api_delete_grammar_content(book_id, lesson_num, entry_id):
-    err = _check_book(book_id)
+def api_delete_grammar_content(book_id, lesson_num, grammar_no, entry_id):
+    err = _check_book(book_id) or _check_grammar_no(grammar_no)
     if err:
         return err
     removed = storage.delete_grammar_content(book_id, lesson_num, entry_id)
@@ -186,20 +200,22 @@ def api_delete_grammar_content(book_id, lesson_num, entry_id):
 
 
 @app.route(
-    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar-questions", methods=["GET"]
+    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar/<int:grammar_no>/questions",
+    methods=["GET"],
 )
-def api_get_grammar_questions(book_id, lesson_num):
-    err = _check_book(book_id)
+def api_get_grammar_questions(book_id, lesson_num, grammar_no):
+    err = _check_book(book_id) or _check_grammar_no(grammar_no)
     if err:
         return err
-    return jsonify(storage.get_grammar_questions(book_id, lesson_num))
+    return jsonify(storage.get_grammar_questions(book_id, lesson_num, grammar_no))
 
 
 @app.route(
-    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar-questions", methods=["POST"]
+    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar/<int:grammar_no>/questions",
+    methods=["POST"],
 )
-def api_add_grammar_question(book_id, lesson_num):
-    err = _check_book(book_id)
+def api_add_grammar_question(book_id, lesson_num, grammar_no):
+    err = _check_book(book_id) or _check_grammar_no(grammar_no)
     if err:
         return err
 
@@ -210,16 +226,16 @@ def api_add_grammar_question(book_id, lesson_num):
     if not question or not answer:
         return jsonify({"error": "문제와 정답을 입력하세요."}), 400
 
-    entry = storage.add_grammar_question(book_id, lesson_num, question, answer)
+    entry = storage.add_grammar_question(book_id, lesson_num, grammar_no, question, answer)
     return jsonify(entry), 201
 
 
 @app.route(
-    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar-questions/<entry_id>",
+    "/api/books/<book_id>/lessons/<int:lesson_num>/grammar/<int:grammar_no>/questions/<entry_id>",
     methods=["DELETE"],
 )
-def api_delete_grammar_question(book_id, lesson_num, entry_id):
-    err = _check_book(book_id)
+def api_delete_grammar_question(book_id, lesson_num, grammar_no, entry_id):
+    err = _check_book(book_id) or _check_grammar_no(grammar_no)
     if err:
         return err
     removed = storage.delete_grammar_question(book_id, lesson_num, entry_id)
@@ -232,13 +248,16 @@ def api_delete_grammar_question(book_id, lesson_num, entry_id):
 def api_grammar_quiz():
     book_id = request.args.get("book", default="")
     lesson_num = request.args.get("lesson", type=int)
+    grammar_no = request.args.get("grammar_no", type=int)
 
     if book_id not in storage.BOOKS:
         return jsonify({"error": "유효하지 않은 교재입니다."}), 400
     if lesson_num is None or lesson_num not in storage.LESSON_NUMBERS:
         return jsonify({"error": "유효한 과(1~18)를 선택하세요."}), 400
+    if grammar_no not in storage.GRAMMAR_SLOTS:
+        return jsonify({"error": "유효하지 않은 문법 번호입니다."}), 400
 
-    questions = storage.get_grammar_questions(book_id, lesson_num)
+    questions = storage.get_grammar_questions(book_id, lesson_num, grammar_no)
     if not questions:
         return jsonify({"error": "이 과는 아직 등록된 문법 문제가 없습니다."}), 400
 
